@@ -57,6 +57,23 @@ export default function App() {
     return row === currRow && col === currCol
   }
 
+  const getCellBGColor = (row, col) => {
+    const letter = rows[row][col]
+    if (row >= currRow) return colors.black //normal
+    else if (letter === letters[col]) return colors.primary //right letter and position
+    else if (letters.includes(letter)) return colors.secondary //right letter
+    return colors.darkgrey //wrong letter
+  }
+
+  const getAllLettersWithColor = (color) => {
+    return rows.flatMap((row, indexY) => row.filter(
+      (cell, indexX) => getCellBGColor(indexY, indexX) === color
+    ))
+  }
+  const greenCaps = getAllLettersWithColor(colors.primary)
+  const yellowCaps = getAllLettersWithColor(colors.secondary)
+  const greyCaps = getAllLettersWithColor(colors.darkgrey)
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
@@ -74,7 +91,8 @@ export default function App() {
                   { 
                     borderColor: isCellActive(indexY, indexX)
                     ? colors.grey
-                    : colors.darkgrey
+                    : colors.darkgrey,
+                    backgroundColor: getCellBGColor(indexY, indexX)
                   }
                 ]} 
               > 
@@ -86,7 +104,12 @@ export default function App() {
 
         ))}
       </ScrollView>
-      <Keyboard onKeyPressed={handleKeyPress}/>
+      <Keyboard 
+        onKeyPressed={handleKeyPress}
+        greyCaps={greyCaps}
+        greenCaps={greenCaps}
+        yellowCaps={yellowCaps}
+      />
     </SafeAreaView>
   );
 }
@@ -105,8 +128,7 @@ const styles = StyleSheet.create({
   },
   map: {
     alignSelf: 'stretch',
-    marginTop: 20,
-    //height: 100
+    marginTop: 20
   },
   row: {
     alignSelf: 'stretch',
