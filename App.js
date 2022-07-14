@@ -29,7 +29,10 @@ export default function App() {
           prevRows[currRow][prevColumn] = ""
           return prevRows
         })
-        setCurrCol(prevCol => prevCol - 1)
+        setCurrCol(prevColumn)
+
+        //causes rendering bugs if you type too fast:
+        //setCurrCol(prevCol => prevCol - 1)
       }
       return
     }
@@ -37,21 +40,27 @@ export default function App() {
     const wordLength = rows[0].length
 
     if (key === ENTER) {
-      const currTry = currRow + 1
-
+      const nextRow = currRow + 1
+      const currTry = nextRow
+      
       if (currTry <= NUMBER_OF_TRIES && currCol === wordLength) {
-        setCurrRow(prevRow => prevRow + 1)
+        setCurrRow(nextRow) //if with a callback, it may cause rendering bugs
         setCurrCol(0)
       }
       return
     }
 
     if (currCol < wordLength) {
+      const nextCol = currCol + 1
+
       setRows(prevRows => {  
         prevRows[currRow][currCol] = key
         return prevRows
       })
-      setCurrCol(prevCol => prevCol + 1)
+      setCurrCol(nextCol)
+
+      //causes rendering bugs if you type too fast:
+      //setCurrCol(prevCol => prevCol + 1)
     }
   }
 
