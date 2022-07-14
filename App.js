@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, CLEAR, ENTER } from './src/constants'
+import { colors, colorsToEmoji, CLEAR, ENTER } from './src/constants'
+import * as Clipboard from 'expo-clipboard'
 import Keyboard from './src/components/Keyboard'
 
 const NUMBER_OF_TRIES = 6;
@@ -85,9 +86,22 @@ export default function App() {
   const yellowCaps = getAllLettersWithColor(colors.secondary)
   const greyCaps = getAllLettersWithColor(colors.darkgrey)
 
+  const shareScore= () => {
+    const textMap = rows
+      .map((row, indexY) => 
+        row.map((cell, indexX) => 
+          colorsToEmoji[getCellBGColor(indexY, indexX)]).join("")
+      )
+      .filter(e => e).join('\n')
+    
+    const textToShare =  `WORDLE \n${textMap}`
+    Clipboard.setStringAsync(textToShare)
+    Alert.alert('Copied successfully', 'Share your score on social media')
+  }
+
   const checkGameState = () => {
     if (checkIfWon()) {
-      Alert.alert("Huraay!", "You Won!")
+      Alert.alert("Huraay!", "You Won!", [{text: 'Share', onPress: shareScore}])
       setGameState("won")
     } else if (checkIfLost()) {
       Alert.alert("Too bad!", "Try again tomorrow")
