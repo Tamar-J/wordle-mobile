@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, CLEAR, ENTER } from './src/constants'
 import Keyboard from './src/components/Keyboard'
@@ -17,8 +17,10 @@ export default function App() {
 
   const [currRow, setCurrRow] = useState(0)
   const [currCol, setCurrCol] = useState(0)
+  const [gameState, setGameState] = useState("playing") //won, lost, playing
 
   const handleKeyPress = (key) => {
+    if (gameState !== "playing") return
     if (key === CLEAR) {
       const prevColumn = currCol - 1
 
@@ -37,7 +39,7 @@ export default function App() {
     if (key === ENTER) {
       const currTry = currRow + 1
 
-      if (currTry < NUMBER_OF_TRIES && currCol === wordLength) {
+      if (currTry <= NUMBER_OF_TRIES && currCol === wordLength) {
         setCurrRow(prevRow => prevRow + 1)
         setCurrCol(0)
       }
@@ -73,6 +75,30 @@ export default function App() {
   const greenCaps = getAllLettersWithColor(colors.primary)
   const yellowCaps = getAllLettersWithColor(colors.secondary)
   const greyCaps = getAllLettersWithColor(colors.darkgrey)
+
+  const checkGameState = () => {
+    if (checkIfWon()) {
+      Alert.alert("Huraay!", "You Won!")
+      setGameState("won")
+    } else if (checkIfLost()) {
+      Alert.alert("Too bad!", "Try again tomorrow")
+      setGameState("lost")
+    }
+  }
+  const checkIfWon = () => {
+    const row = rows[currRow - 1]
+
+    return row.every((letter, index) => letter === letters[index])
+  }
+  const checkIfLost = () => {
+    return currRow === rows.length
+  }
+
+  useEffect(() => {
+    if (currRow > 0) {
+      checkGameState()
+    }
+  }, [currRow])
 
   return (
     <SafeAreaView style={styles.container}>
