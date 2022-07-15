@@ -1,6 +1,6 @@
 # **Wordle React Native**
 
-<img src=".github/wordle.gif" alt="wordle demo" width="18%"/>
+<img src=".github/wordle.gif" alt="wordle demo" width="46%"/>
 
 -=> *([download](https://expo.dev/@tamar-j/Wordle) com expo)* <=-
 
