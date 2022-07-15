@@ -95,7 +95,7 @@ export default function App() {
   const yellowCaps = getAllLettersWithColor(colors.secondary)
   const greyCaps = getAllLettersWithColor(colors.darkgrey)
 
-  const shareScore= () => {
+  const shareScore = async () => {
     const textMap = rows
       .map((row, indexY) => 
         row.map((cell, indexX) => 
@@ -104,15 +104,15 @@ export default function App() {
       .filter(e => e).join('\n')
     
     const textToShare =  `WORDLE \n${textMap}`
-    Clipboard.setStringAsync(textToShare)
+    await Clipboard.setStringAsync(textToShare)
     Alert.alert('Copied successfully', 'Share your score on social media')
   }
 
   const checkGameState = () => {
-    if (checkIfWon()) {
+    if (checkIfWon() && gameState !== "won") {
       Alert.alert("Huraay!", "You Won!", [{text: 'Share', onPress: shareScore}])
       setGameState("won")
-    } else if (checkIfLost()) {
+    } else if (checkIfLost() && gameState !== "lost") {
       Alert.alert("Too bad!", "Try again tomorrow")
       setGameState("lost")
     }
@@ -123,7 +123,7 @@ export default function App() {
     return row.every((letter, index) => letter === letters[index])
   }
   const checkIfLost = () => {
-    return currRow === rows.length
+    return !checkIfWon() && currRow === rows.length
   }
 
   useEffect(() => {
