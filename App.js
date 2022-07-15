@@ -5,11 +5,20 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, colorsToEmoji, CLEAR, ENTER } from './src/constants'
 import * as Clipboard from 'expo-clipboard'
 import Keyboard from './src/components/Keyboard'
+import words from './src/words';
 
 const NUMBER_OF_TRIES = 6;
+const dayOfTheYear = () => {
+  const now = new Date()
+  const start = new Date(now.getFullYear(), 0, 0)
+  const diff = now - start
+  const oneDay = 1000 * 60 * 60 * 24
+  const day = Math.floor(diff / oneDay)
+  return day
+}
 
 export default function App() {
-  const word = "hello"
+  const word = words[dayOfTheYear()]
   const letters = word.split('')
 
   const [rows, setRows] = useState(
