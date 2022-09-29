@@ -1,23 +1,15 @@
 import { useState, useEffect } from 'react'
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, ScrollView, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, colorsToEmoji, CLEAR, ENTER } from './src/constants'
+import { Text, View, ScrollView, Alert } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
-import Keyboard from './src/components/Keyboard'
-import words from './src/words';
 
-const NUMBER_OF_TRIES = 6;
-const dayOfTheYear = () => {
-  const now = new Date()
-  const start = new Date(now.getFullYear(), 0, 0)
-  const diff = now - start
-  const oneDay = 1000 * 60 * 60 * 24
-  const day = Math.floor(diff / oneDay)
-  return day
-}
+import { colors, colorsToEmoji, CLEAR, ENTER, NUMBER_OF_TRIES } from '../../constants'
+import Keyboard from '../../components/Keyboard'
+import words from '../../words'
+import { dayOfTheYear } from '../../utils'
 
-export default function App() {
+import styles from './Game.styles'
+
+export default function Game() {
   const word = words[dayOfTheYear()]
   const letters = word.split('')
 
@@ -133,11 +125,7 @@ export default function App() {
   }, [currRow])
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="light" />
-
-      <Text style={styles.title}>WORDLE</Text>
-
+    <>
       <ScrollView style={styles.map}>
         {rows.map((row, indexY) => (
           <View key={`row-${indexY}`} style={styles.row}>
@@ -168,44 +156,7 @@ export default function App() {
         greenCaps={greenCaps}
         yellowCaps={yellowCaps}
       />
-    </SafeAreaView>
+    </>
+
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.black,
-    alignItems: 'center',
-  },
-  title: {
-    color: colors.lightgrey,
-    fontSize: 32,
-    fontWeight: 'bold',
-    letterSpacing: 7
-  },
-  map: {
-    alignSelf: 'stretch',
-    marginTop: 20
-  },
-  row: {
-    alignSelf: 'stretch',
-    flexDirection: 'row',
-    justifyContent: 'center'
-  },
-  cell: {
-    borderWidth: 3,
-    borderColor: colors.darkgrey,
-    maxWidth: 70,
-    flex: 1,
-    aspectRatio: 1,
-    margin: 3,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  cellText: {
-    color: colors.lightgrey,
-    fontWeight: 'bold',
-    fontSize: 28
-  }
-});

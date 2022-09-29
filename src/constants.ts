@@ -5,19 +5,21 @@ export const colors = {
   lightgrey: "#D7DADC",
   primary: "#538D4E",
   secondary: "#B59F3B",
-};
+}
 
 export const colorsToEmoji = {
   [colors.darkgrey]: "⬛",
   [colors.primary]: "🟩",
   [colors.secondary]: "🟧",
-};
+}
 
-export const ENTER = "ENTER";
-export const CLEAR = "CLEAR";
+export const ENTER = "ENTER"
+export const CLEAR = "CLEAR"
 
 export const keys = [
   ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
   ["a", "s", "d", "f", "g", "h", "j", "k", "l"],
   [ENTER, "z", "x", "c", "v", "b", "n", "m", CLEAR],
-];
+]
+
+export const NUMBER_OF_TRIES = 6
