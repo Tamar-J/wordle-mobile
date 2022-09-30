@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Text, View, ScrollView, Alert } from 'react-native'
+import { Text, View, ScrollView, Alert, ActivityIndicator } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
 
 import { colors, colorsToEmoji, CLEAR, ENTER, NUMBER_OF_TRIES } from '../../constants'
@@ -8,6 +8,7 @@ import words from '../../words'
 import { dayOfTheYear } from '../../utils'
 
 import styles from './Game.styles'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 export default function Game() {
   const word = words[dayOfTheYear()]
@@ -20,6 +21,7 @@ export default function Game() {
   const [currRow, setCurrRow] = useState(0)
   const [currCol, setCurrCol] = useState(0)
   const [gameState, setGameState] = useState("playing") //won, lost, playing
+  const [loadedData, setLoadedData] = useState(false)
 
   const handleKeyPress = (key) => {
     if (gameState !== "playing") return
@@ -118,12 +120,61 @@ export default function Game() {
     return !checkIfWon() && currRow === rows.length
   }
 
+  const persistState = async () => {
+    //write all the state variables in async storage
+    const data = {
+      rows,
+      currRow,
+      currCol,
+      gameState
+    }
+
+    try {
+      const dataString = JSON.stringify(data)
+      await AsyncStorage.setItem('@gameStates', dataString)
+    } catch (err) {
+      console.log("Failed to persist data to async storage", err);
+      
+    }
+  }
+
+  const readState = async () => {
+    const dataString = await AsyncStorage.getItem('@gameStates')
+    try {
+      const data = JSON.parse(dataString)
+      /* console.log(dataString) */
+      setRows(data.rows)
+      setCurrCol(data.currCol)
+      setCurrRow(data.currRow)
+      setGameState(data.gameState)
+    } catch (err) {
+      console.log("Couldn't parse the state data", err)
+      
+    }
+
+    setLoadedData(true)
+    
+  }
+
+  useEffect(() => {
+    readState()
+  }, [])
+
+  useEffect(() => {
+    if (loadedData) {
+      persistState()
+    }
+  }, [rows, currRow, currCol, gameState])
+
   useEffect(() => {
     if (currRow > 0) {
       checkGameState()
     }
   }, [currRow])
 
+  if (!loadedData) {
+    return <ActivityIndicator />
+  }
   return (
     <>
       <ScrollView style={styles.map}>
