@@ -5,13 +5,14 @@ import * as Clipboard from 'expo-clipboard'
 import { colors, colorsToEmoji, CLEAR, ENTER, NUMBER_OF_TRIES } from '../../constants'
 import Keyboard from '../../components/Keyboard'
 import words from '../../words'
-import { dayOfTheYear } from '../../utils'
+import { getDayOfTheYear, getDayYearKey } from '../../utils'
 
 import styles from './Game.styles'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
 export default function Game() {
-  const word = words[dayOfTheYear()]
+  /* AsyncStorage.removeItem('@gameStates') */
+  const word = words[getDayOfTheYear()]
   const letters = word.split('')
 
   const [rows, setRows] = useState(
@@ -122,7 +123,7 @@ export default function Game() {
 
   const persistState = async () => {
     //write all the state variables in async storage
-    const data = {
+    const dataForToday = {
       rows,
       currRow,
       currCol,
@@ -130,11 +131,18 @@ export default function Game() {
     }
 
     try {
-      const dataString = JSON.stringify(data)
+      const existingStateString = await AsyncStorage.getItem('@gameStates')
+      const existingState = existingStateString
+        ? JSON.parse(existingStateString)
+        : {}
+        
+      existingState[getDayYearKey()] = dataForToday
+
+      const dataString = JSON.stringify(existingState)
+      /* console.log("saving", dataString) */
       await AsyncStorage.setItem('@gameStates', dataString)
     } catch (err) {
-      console.log("Failed to persist data to async storage", err);
-      
+      console.log("Failed to persist data to async storage", err)
     }
   }
 
@@ -142,11 +150,12 @@ export default function Game() {
     const dataString = await AsyncStorage.getItem('@gameStates')
     try {
       const data = JSON.parse(dataString)
+      const day = data[getDayYearKey()]
       /* console.log(dataString) */
-      setRows(data.rows)
-      setCurrCol(data.currCol)
-      setCurrRow(data.currRow)
-      setGameState(data.gameState)
+      setRows(day.rows)
+      setCurrCol(day.currCol)
+      setCurrRow(day.currRow)
+      setGameState(day.gameState)
     } catch (err) {
       console.log("Couldn't parse the state data", err)
       
