@@ -1,3 +1,11 @@
+/** Make an array of arrays copy 
+ * @param arrayOfArrays - An array of arrays of string 
+ * @returns Returns a copy of the array inserted
+ * */
+export const copyArray = (arrayOfArrays: string[][]) => {
+  return [...arrayOfArrays.map(rows => [...rows])]
+}
+
 export const getDayOfTheYear = () => {
   const now = new Date()
   const start = new Date(now.getFullYear(), 0, 0)

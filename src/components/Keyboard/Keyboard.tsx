@@ -1,9 +1,9 @@
 import { View, Text, Pressable } from "react-native"
-import { keys, ENTER, CLEAR, colors } from "../../constants"
+import { keys, ENTER, CLEAR, colors, keysType } from "../../constants"
 import styles, { keyWidth } from "./Keyboard.styles"
 
 interface Props {
-  onKeyPressed: (key: string) => void
+  onKeyPressed: (key: keysType) => void
   greenCaps: string[]
   yellowCaps: string[]
   greyCaps: string[]
@@ -15,11 +15,12 @@ const Keyboard = ({
   yellowCaps = [],
   greyCaps = [],
 }: Props) => {
-  const isLongButton = (key: string) => {
+
+  const isLongButton = (key: keysType) => {
     return key === ENTER || key === CLEAR
   }
 
-  const getKeyBGColor = (key: string) => {
+  const getKeyBGColor = (key: keysType) => {
     if (greenCaps.includes(key)) {
       return colors.primary
     }

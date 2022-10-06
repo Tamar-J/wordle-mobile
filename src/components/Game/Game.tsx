@@ -1,43 +1,48 @@
 import { useState, useEffect } from 'react'
-import { Text, View, ScrollView, Alert, ActivityIndicator } from 'react-native'
-import * as Clipboard from 'expo-clipboard'
+import { Text, View, ScrollView, ActivityIndicator } from 'react-native'
 
-import { colors, colorsToEmoji, CLEAR, ENTER, NUMBER_OF_TRIES } from '../../constants'
+import { colors, CLEAR, ENTER, NUMBER_OF_TRIES, keysType } from '../../constants'
 import Keyboard from '../../components/Keyboard'
 import words from '../../words'
-import { getDayOfTheYear, getDayYearKey } from '../../utils'
+import { copyArray, getDayOfTheYear, getDayYearKey } from '../../utils'
 
 import styles from './Game.styles'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import EndScreen from '../EndScreen'
+
+export interface PersistentDataProps {
+  rows: string[][]
+  currRow: number
+  currCol: number
+  gameState: "won" | "lost" | "playing"
+}
 
 export default function Game() {
   /* AsyncStorage.removeItem('@gameStates') */
   const word = words[getDayOfTheYear()]
   const letters = word.split('')
 
-  const [rows, setRows] = useState(
+  const [rows, setRows] = useState<string[][]>(
     Array(NUMBER_OF_TRIES).fill("").map(e => Array(letters.length).fill(""))
   )
-
   const [currRow, setCurrRow] = useState(0)
   const [currCol, setCurrCol] = useState(0)
-  const [gameState, setGameState] = useState("playing") //won, lost, playing
+  const [gameState, setGameState] = useState<'won'|'lost'|'playing'>("playing")
   const [loadedData, setLoadedData] = useState(false)
 
-  const handleKeyPress = (key) => {
+  const handleKeyPress = (key: keysType) => {
     if (gameState !== "playing") return
+
+    const updateRows = copyArray(rows)
+
     if (key === CLEAR) {
       const prevColumn = currCol - 1
 
       if (prevColumn >= 0) {
-        setRows(prevRows => {  
-          prevRows[currRow][prevColumn] = ""
-          return prevRows
-        })
-        setCurrCol(prevColumn)
+        updateRows[currRow][prevColumn] = ""
 
-        //causes rendering bugs if you type too fast:
-        //setCurrCol(prevCol => prevCol - 1)
+        setRows(updateRows)
+        setCurrCol(prevColumn)
       }
       return
     }
@@ -46,10 +51,9 @@ export default function Game() {
 
     if (key === ENTER) {
       const nextRow = currRow + 1
-      const currTry = nextRow
       
-      if (currTry <= NUMBER_OF_TRIES && currCol === wordLength) {
-        setCurrRow(nextRow) //if with a callback, it may cause rendering bugs
+      if (currCol === wordLength) {
+        setCurrRow(nextRow) 
         setCurrCol(0)
       }
       return
@@ -58,30 +62,27 @@ export default function Game() {
     if (currCol < wordLength) {
       const nextCol = currCol + 1
 
-      setRows(prevRows => {  
-        prevRows[currRow][currCol] = key
-        return prevRows
-      })
-      setCurrCol(nextCol)
+      updateRows[currRow][currCol] = key
 
-      //causes rendering bugs if you type too fast:
-      //setCurrCol(prevCol => prevCol + 1)
+      setRows(updateRows)
+      setCurrCol(nextCol)
     }
   }
 
-  const isCellActive = (row, col) => {
+  const isCellActive = (row: number, col: number) => {
     return row === currRow && col === currCol
   }
 
-  const getCellBGColor = (row, col) => {
+  const getCellBGColor = (row: number, col: number) => {
     const letter = rows[row][col]
+    
     if (row >= currRow) return colors.black //normal
     else if (letter === letters[col]) return colors.primary //right letter and position
     else if (letters.includes(letter)) return colors.secondary //right letter
     return colors.darkgrey //wrong letter
   }
 
-  const getAllLettersWithColor = (color) => {
+  const getAllLettersWithColor = (color: "#538D4E"|"#B59F3B"|"#3A3A3D") => {
     return rows.flatMap((row, indexY) => row.filter(
       (cell, indexX) => getCellBGColor(indexY, indexX) === color
     ))
@@ -90,32 +91,17 @@ export default function Game() {
   const yellowCaps = getAllLettersWithColor(colors.secondary)
   const greyCaps = getAllLettersWithColor(colors.darkgrey)
 
-  const shareScore = async () => {
-    const textMap = rows
-      .map((row, indexY) => 
-        row.map((cell, indexX) => 
-          colorsToEmoji[getCellBGColor(indexY, indexX)]).join("")
-      )
-      .filter(e => e).join('\n')
-    
-    const textToShare =  `WORDLE \n${textMap}`
-    await Clipboard.setStringAsync(textToShare)
-    Alert.alert('Copied successfully', 'Share your score on social media')
-  }
-
   const checkGameState = () => {
     if (checkIfWon() && gameState !== "won") {
-      Alert.alert("Huraay!", "You Won!", [{text: 'Share', onPress: shareScore}])
       setGameState("won")
     } else if (checkIfLost() && gameState !== "lost") {
-      Alert.alert("Too bad!", "Try again tomorrow")
       setGameState("lost")
     }
   }
   const checkIfWon = () => {
     const row = rows[currRow - 1]
 
-    return row.every((letter, index) => letter === letters[index])
+    return row.every((letter: string, index) => letter === letters[index])
   }
   const checkIfLost = () => {
     return !checkIfWon() && currRow === rows.length
@@ -123,7 +109,7 @@ export default function Game() {
 
   const persistState = async () => {
     //write all the state variables in async storage
-    const dataForToday = {
+    const dataForToday: PersistentDataProps = {
       rows,
       currRow,
       currCol,
@@ -184,6 +170,11 @@ export default function Game() {
   if (!loadedData) {
     return <ActivityIndicator />
   }
+
+  if (gameState !== 'playing') {
+    return <EndScreen won={gameState === 'won'} rows={rows} getCellBGColor={getCellBGColor} />
+  }
+
   return (
     <>
       <ScrollView style={styles.map}>
