@@ -144,7 +144,7 @@ export default function EndScreen({ won = false, rows, getCellBGColor }: EndScre
 
     values.map((game) => {
       if (game.gameState === 'won') {
-        const tries = game.rows.filter(row => row[0]).length
+        const tries = game.rows.filter(row => row[0]).length - 1
         
         dist[tries] = dist[tries] + 1
       }
