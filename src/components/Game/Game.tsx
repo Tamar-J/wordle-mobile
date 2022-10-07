@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Text, View, ScrollView, ActivityIndicator } from 'react-native'
 
 import { colors, CLEAR, ENTER, NUMBER_OF_TRIES, keysType } from '../../constants'
@@ -9,6 +9,7 @@ import { copyArray, getDayOfTheYear, getDayYearKey } from '../../utils'
 import styles from './Game.styles'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import EndScreen from '../EndScreen'
+import Animated, { FlipInEasyY, SlideInLeft, ZoomIn } from 'react-native-reanimated'
 
 export interface PersistentDataProps {
   rows: string[][]
@@ -29,6 +30,66 @@ export default function Game() {
   const [currCol, setCurrCol] = useState(0)
   const [gameState, setGameState] = useState<'won'|'lost'|'playing'>("playing")
   const [loadedData, setLoadedData] = useState(false)
+
+  const persistState = async () => {
+    //write all the state variables in async storage
+    const dataForToday: PersistentDataProps = {
+      rows,
+      currRow,
+      currCol,
+      gameState
+    }
+
+    try {
+      const existingStateString = await AsyncStorage.getItem('@gameStates')
+      const existingState = existingStateString
+        ? JSON.parse(existingStateString)
+        : {}
+        
+      existingState[getDayYearKey()] = dataForToday
+
+      const dataString = JSON.stringify(existingState)
+      /* console.log("saving", dataString) */
+      await AsyncStorage.setItem('@gameStates', dataString)
+    } catch (err) {
+      console.log("Failed to persist data to async storage", err)
+    }
+  }
+
+  const readState = async () => {
+    const dataString = await AsyncStorage.getItem('@gameStates')
+    try {
+      const data = JSON.parse(dataString)
+      const day = data[getDayYearKey()]
+
+      setRows(day.rows)
+      setCurrCol(day.currCol)
+      setCurrRow(day.currRow)
+      setGameState(day.gameState)
+    } catch (err) {
+      console.log("Couldn't parse the state data", err)
+      
+    }
+
+    setLoadedData(true)
+    
+  }
+  
+  const checkGameState = () => {
+    if (checkIfWon() && gameState !== "won") {
+      setGameState("won")
+    } else if (checkIfLost() && gameState !== "lost") {
+      setGameState("lost")
+    }
+  }
+  const checkIfWon = () => {
+    const row = rows[currRow - 1]
+
+    return row.every((letter: string, index) => letter === letters[index])
+  }
+  const checkIfLost = () => {
+    return !checkIfWon() && currRow === rows.length
+  }
 
   const handleKeyPress = (key: keysType) => {
     if (gameState !== "playing") return
@@ -53,7 +114,7 @@ export default function Game() {
       const nextRow = currRow + 1
       
       if (currCol === wordLength) {
-        setCurrRow(nextRow) 
+        setCurrRow(nextRow)
         setCurrCol(0)
       }
       return
@@ -91,69 +152,23 @@ export default function Game() {
   const yellowCaps = getAllLettersWithColor(colors.secondary)
   const greyCaps = getAllLettersWithColor(colors.darkgrey)
 
-  const checkGameState = () => {
-    if (checkIfWon() && gameState !== "won") {
-      setGameState("won")
-    } else if (checkIfLost() && gameState !== "lost") {
-      setGameState("lost")
-    }
-  }
-  const checkIfWon = () => {
-    const row = rows[currRow - 1]
-
-    return row.every((letter: string, index) => letter === letters[index])
-  }
-  const checkIfLost = () => {
-    return !checkIfWon() && currRow === rows.length
-  }
-
-  const persistState = async () => {
-    //write all the state variables in async storage
-    const dataForToday: PersistentDataProps = {
-      rows,
-      currRow,
-      currCol,
-      gameState
-    }
-
-    try {
-      const existingStateString = await AsyncStorage.getItem('@gameStates')
-      const existingState = existingStateString
-        ? JSON.parse(existingStateString)
-        : {}
-        
-      existingState[getDayYearKey()] = dataForToday
-
-      const dataString = JSON.stringify(existingState)
-      /* console.log("saving", dataString) */
-      await AsyncStorage.setItem('@gameStates', dataString)
-    } catch (err) {
-      console.log("Failed to persist data to async storage", err)
-    }
-  }
-
-  const readState = async () => {
-    const dataString = await AsyncStorage.getItem('@gameStates')
-    try {
-      const data = JSON.parse(dataString)
-      const day = data[getDayYearKey()]
-      /* console.log(dataString) */
-      setRows(day.rows)
-      setCurrCol(day.currCol)
-      setCurrRow(day.currRow)
-      setGameState(day.gameState)
-    } catch (err) {
-      console.log("Couldn't parse the state data", err)
-      
-    }
-
-    setLoadedData(true)
-    
-  }
+  const getCellStyle = (indexY: number, indexX: number) => (
+    [
+      styles.cell,
+      { 
+        borderColor: isCellActive(indexY, indexX)
+        ? colors.grey
+        : colors.darkgrey,
+        backgroundColor: getCellBGColor(indexY, indexX)
+      }
+    ]
+  )
 
   useEffect(() => {
-    readState()
-  }, [])
+    if (currRow > 0) {
+      checkGameState()
+    }
+  }, [currRow])
 
   useEffect(() => {
     if (loadedData) {
@@ -162,10 +177,9 @@ export default function Game() {
   }, [rows, currRow, currCol, gameState])
 
   useEffect(() => {
-    if (currRow > 0) {
-      checkGameState()
-    }
-  }, [currRow])
+    readState()
+  }, [])
+
 
   if (!loadedData) {
     return <ActivityIndicator />
@@ -179,25 +193,33 @@ export default function Game() {
     <>
       <ScrollView style={styles.map}>
         {rows.map((row, indexY) => (
-          <View key={`row-${indexY}`} style={styles.row}>
+          <Animated.View entering={SlideInLeft.delay(indexY * 45)} key={`row-${indexY}`} style={styles.row}>
             {row.map((cell, indexX) => (
-              <View 
-                key={`cell-${indexY}-${indexX}`}
-                style={[
-                  styles.cell,
-                  { 
-                    borderColor: isCellActive(indexY, indexX)
-                    ? colors.grey
-                    : colors.darkgrey,
-                    backgroundColor: getCellBGColor(indexY, indexX)
-                  }
-                ]} 
-              > 
-                <Text style={styles.cellText}>
-                {cell.toUpperCase()}</Text>
-              </View>
+              <React.Fragment key={`cells-${indexY}-${indexX}`}>
+                {indexY < currRow && (
+                  <Animated.View
+                    entering={FlipInEasyY.delay(indexX * 100)}
+                    style={getCellStyle(indexY, indexX)} 
+                  > 
+                    <Text style={styles.cellText}>{cell.toUpperCase()}</Text>
+                  </Animated.View>
+                )}
+                {indexY === currRow && !!cell && (
+                  <Animated.View
+                    entering={ZoomIn}
+                    style={getCellStyle(indexY, indexX)} 
+                  > 
+                    <Text style={styles.cellText}>{cell.toUpperCase()}</Text>
+                  </Animated.View>
+                )}
+                {!cell && (
+                  <View style={getCellStyle(indexY, indexX)} > 
+                    <Text style={styles.cellText}>{cell.toUpperCase()}</Text>
+                  </View>
+                )}
+              </React.Fragment>
             ))}
-          </View>
+          </Animated.View>
 
         ))}
       </ScrollView>

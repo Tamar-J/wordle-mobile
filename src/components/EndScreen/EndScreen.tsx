@@ -5,6 +5,7 @@ import * as Clipboard from 'expo-clipboard'
 import { colors, colorsToEmoji } from '../../constants'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { PersistentDataProps } from '../Game/Game'
+import Animated, { SlideInLeft } from 'react-native-reanimated'
 
 interface NumberProps {
   number: number
@@ -24,7 +25,11 @@ const Number = ({ number, label }: NumberProps) => {
   )
 }
 
-const GuessDistribution = ({ distribution }) => {
+interface GuessDistributionProps {
+  distribution: number[]
+}
+
+const GuessDistribution = ({ distribution }: GuessDistributionProps) => {
   if (!distribution) {
     return null
   }
@@ -139,10 +144,12 @@ export default function EndScreen({ won = false, rows, getCellBGColor }: EndScre
 
     values.map((game) => {
       if (game.gameState === 'won') {
-        const tries = game.rows.filter(row => row[0]).length 
+        const tries = game.rows.filter(row => row[0]).length
+        
         dist[tries] = dist[tries] + 1
       }
     })
+    
     setDistribution(dist)
     
   }
@@ -193,21 +200,32 @@ export default function EndScreen({ won = false, rows, getCellBGColor }: EndScre
   
   return (
     <View style={{ width: '100%', alignItems: 'center' }}>
-      <Text style={styles.title}>
+      <Animated.Text entering={SlideInLeft.springify().mass(0.5)} style={styles.title}>
         {won ? 'Congratulations!' : 'Meh, try again tomorrow'}
-      </Text>
+      </Animated.Text>
 
-      <Text style={styles.subTitle}>Statistics</Text>
-      <View style={{ flexDirection: 'row', margin: 20 }}>
-        <Number number={played} label={"Played"} />
-        <Number number={winRate} label={"Win %"} />
-        <Number number={curStreak} label={"Cur streak"} />
-        <Number number={maxStreak} label={"Max streak"} />
-      </View>
+      <Animated.View entering={SlideInLeft.delay(100).springify().mass(0.5)}>
+        <Text style={styles.subTitle}>Statistics</Text>
+        <View style={{ flexDirection: 'row', margin: 20 }}>
+          <Number number={played} label={"Played"} />
+          <Number number={winRate} label={"Win %"} />
+          <Number number={curStreak} label={"Cur streak"} />
+          <Number number={maxStreak} label={"Max streak"} />
+        </View>    
+      </Animated.View>
 
-      <GuessDistribution distribution={distribution} />
+      <Animated.View 
+        entering={SlideInLeft.delay(200).springify().mass(0.5)} 
+        style={{ width: '100%'}}
+      >
+        <GuessDistribution distribution={distribution} />
 
-      <View style={{ flexDirection: 'row', padding: 10 }}>
+      </Animated.View>
+
+      <Animated.View 
+        entering={SlideInLeft.delay(200).springify().mass(0.5)} 
+        style={{ flexDirection: 'row', padding: 10 }}
+      >
         <View style={{ flex: 1, alignItems: 'center' }}>
           <Text style={{ color: colors.lightgrey }}>Next Wordle</Text>
           <Text
@@ -233,7 +251,7 @@ export default function EndScreen({ won = false, rows, getCellBGColor }: EndScre
             Share
           </Text>
         </Pressable>
-      </View>
+      </Animated.View>
     </View>
   )
 }
