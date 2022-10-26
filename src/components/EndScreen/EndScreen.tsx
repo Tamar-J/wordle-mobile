@@ -106,7 +106,7 @@ export default function EndScreen({ won = false, rows, getCellBGColor }: EndScre
     try {
       data = JSON.parse(dataString)
     } catch (err) {
-      console.log("Couldn't parse the state data")
+      //console.log("Couldn't parse the state data")
     }
 
     const keys = Object.keys(data) //["day-280-2022"]
@@ -204,7 +204,7 @@ export default function EndScreen({ won = false, rows, getCellBGColor }: EndScre
 
   useEffect(() => {
     readState()
-  }, [])
+  }, [distribution])
   
   return (
     <>

@@ -67,8 +67,7 @@ export default function Game() {
       setCurrRow(day.currRow)
       setGameState(day.gameState)
     } catch (err) {
-      console.log("Couldn't parse the state data", err)
-      
+      //console.log("Couldn't parse the state data", err)
     }
 
     setLoadedData(true)
