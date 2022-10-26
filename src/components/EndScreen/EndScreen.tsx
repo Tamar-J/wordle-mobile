@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, Pressable, Alert } from 'react-native'
+import { View, Text, StyleSheet, Pressable, Alert, useWindowDimensions } from 'react-native'
+import LottieView from  "lottie-react-native";
 import * as Clipboard from 'expo-clipboard'
 
 import { colors, colorsToEmoji } from '../../constants'
@@ -97,6 +98,8 @@ export default function EndScreen({ won = false, rows, getCellBGColor }: EndScre
   const [maxStreak, setMaxStreak] = useState(0)
   const [distribution, setDistribution] = useState<number[]>(null)
 
+  const { height } = useWindowDimensions()
+
   const readState = async () => {
     const dataString = await AsyncStorage.getItem('@gameStates')
     let data: DataProps
@@ -164,15 +167,16 @@ export default function EndScreen({ won = false, rows, getCellBGColor }: EndScre
       )
       .filter((row: string) => row)
       .join('\n')
-    
-    const textToShare =  `WORDLE \n${textMap}`
-    await Clipboard.setStringAsync(textToShare)
-    Alert.alert('Copied successfully', 'Share your score on social media')
-  }
 
-  useEffect(() => {
-    readState()
-  }, [])
+    const textToShare =  `WORDLE \n${textMap}`;
+
+    /* prevent crash by multiple requests */
+    if (await Clipboard.getStringAsync() !== textToShare) {
+      await Clipboard.setStringAsync(textToShare)
+    }
+    const showText =  await Clipboard.getStringAsync() + '\n\nShare your score on social media'
+    Alert.alert('Copied successfully', showText)
+  }
 
   useEffect(() => {
     const updateTime = () => {
@@ -197,62 +201,83 @@ export default function EndScreen({ won = false, rows, getCellBGColor }: EndScre
     
     return `${hours}:${minutes}:${seconds}`
   }
+
+  useEffect(() => {
+    readState()
+  }, [])
   
   return (
-    <View style={{ width: '100%', alignItems: 'center' }}>
-      <Animated.Text entering={SlideInLeft.springify().mass(0.5)} style={styles.title}>
-        {won ? 'Congratulations!' : 'Meh, try again tomorrow'}
-      </Animated.Text>
-
-      <Animated.View entering={SlideInLeft.delay(100).springify().mass(0.5)}>
-        <Text style={styles.subTitle}>Statistics</Text>
-        <View style={{ flexDirection: 'row', margin: 20 }}>
-          <Number number={played} label={"Played"} />
-          <Number number={winRate} label={"Win %"} />
-          <Number number={curStreak} label={"Cur streak"} />
-          <Number number={maxStreak} label={"Max streak"} />
-        </View>    
-      </Animated.View>
-
-      <Animated.View 
-        entering={SlideInLeft.delay(200).springify().mass(0.5)} 
-        style={{ width: '100%'}}
-      >
-        <GuessDistribution distribution={distribution} />
-
-      </Animated.View>
-
-      <Animated.View 
-        entering={SlideInLeft.delay(200).springify().mass(0.5)} 
-        style={{ flexDirection: 'row', padding: 10 }}
-      >
-        <View style={{ flex: 1, alignItems: 'center' }}>
-          <Text style={{ color: colors.lightgrey }}>Next Wordle</Text>
-          <Text
-            style={{ color: colors.lightgrey, fontSize: 24, fontWeight: 'bold' }}
-          >
-            {formatSeconds()}
-          </Text>
-        </View>
-
-        <Pressable 
-          onPress={share}
-          style={{ 
-            flex: 1, 
-            backgroundColor: colors.primary, 
-            borderRadius: 25, 
-            alignItems: 'center', 
-            justifyContent: 'center' 
+    <>
+      {
+        won &&
+        <LottieView
+          autoPlay
+          resizeMode='cover'
+          loop
+          style={{
+            height: height + 50,
+            position: 'absolute',
+            left: 0,
+            top: 0
           }}
+          source={require('../../assets/confetti.json')}
+        />
+      }
+      <View style={{ width: '100%', alignItems: 'center' }}>
+        <Animated.Text entering={SlideInLeft.springify().mass(0.5)} style={styles.title}>
+          {won ? 'Congratulations!' : 'Meh, try again tomorrow'}
+        </Animated.Text>
+
+        <Animated.View entering={SlideInLeft.delay(100).springify().mass(0.5)}>
+          <Text style={styles.subTitle}>Statistics</Text>
+          <View style={{ flexDirection: 'row', margin: 20 }}>
+            <Number number={played} label={"Played"} />
+            <Number number={winRate} label={"Win %"} />
+            <Number number={curStreak} label={"Cur streak"} />
+            <Number number={maxStreak} label={"Max streak"} />
+          </View>    
+        </Animated.View>
+
+        <Animated.View 
+          entering={SlideInLeft.delay(200).springify().mass(0.5)} 
+          style={{ width: '100%'}}
         >
-          <Text
-            style={{ color: colors.lightgrey, fontWeight: 'bold' }}
+          <GuessDistribution distribution={distribution} />
+
+        </Animated.View>
+
+        <Animated.View 
+          entering={SlideInLeft.delay(200).springify().mass(0.5)} 
+          style={{ flexDirection: 'row', padding: 10 }}
+        >
+          <View style={{ flex: 1, alignItems: 'center' }}>
+            <Text style={{ color: colors.lightgrey }}>Next Wordle</Text>
+            <Text
+              style={{ color: colors.lightgrey, fontSize: 24, fontWeight: 'bold' }}
+            >
+              {formatSeconds()}
+            </Text>
+          </View>
+
+          <Pressable 
+            onPress={share}
+            style={{ 
+              flex: 1, 
+              backgroundColor: colors.primary, 
+              borderRadius: 25, 
+              alignItems: 'center', 
+              justifyContent: 'center' 
+            }}
           >
-            Share
-          </Text>
-        </Pressable>
-      </Animated.View>
-    </View>
+            <Text
+              style={{ color: colors.lightgrey, fontWeight: 'bold' }}
+            >
+              Share
+            </Text>
+          </Pressable>
+        </Animated.View>
+      </View>
+    </>
   )
 }
 

@@ -19,7 +19,7 @@ export interface PersistentDataProps {
 }
 
 export default function Game() {
-  /* AsyncStorage.removeItem('@gameStates') */
+  //AsyncStorage.removeItem('@gameStates')
   const word = words[getDayOfTheYear()]
   const letters = word.split('')
 
@@ -77,9 +77,13 @@ export default function Game() {
   
   const checkGameState = () => {
     if (checkIfWon() && gameState !== "won") {
-      setGameState("won")
+      setTimeout(() => {
+        setGameState("won")
+      }, 1200);
     } else if (checkIfLost() && gameState !== "lost") {
-      setGameState("lost")
+      setTimeout(() => {
+        setGameState("lost")
+      }, 1200);
     }
   }
   const checkIfWon = () => {
