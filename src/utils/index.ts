@@ -19,3 +19,20 @@ export const getDayYearKey = () => {
   const currentYear = new Date().getFullYear()
   return `day-${getDayOfTheYear()}-${currentYear}`
 }
+
+/** 
+ * Make a reverse time digital clock using the seconds remaining to the end of the day.
+ * @param secondsTillTomorrow Receives a number that is the seconds remaining to the end of the day.
+ * @return Returns a string like a digital clock with the time remaining to the end of the day.
+ * */ 
+export const digitalClockReverse = (secondsTillTomorrow: number) => {
+  const hours =  Math.floor(secondsTillTomorrow / (60 * 60))
+  const minutes = Math.floor((secondsTillTomorrow % (60 * 60)) / 60)
+  const seconds = Math.floor(secondsTillTomorrow % 60)
+
+  const hoursWithZero = hours < 10 ? '0'+hours : hours 
+  const minutesWithZero = minutes < 10 ? '0'+minutes : minutes 
+  const secondsWithZero = seconds < 10 ? '0'+seconds : seconds 
+  
+  return `${hoursWithZero}:${minutesWithZero}:${secondsWithZero}`
+}
