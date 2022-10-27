@@ -1,86 +1,19 @@
 import { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, Pressable, Alert, useWindowDimensions } from 'react-native'
-import LottieView from  "lottie-react-native";
+import { View, Text, Pressable, Alert, useWindowDimensions, ScrollView } from 'react-native'
+import Animated, { SlideInLeft } from 'react-native-reanimated'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import LottieView from  "lottie-react-native"
 import * as Clipboard from 'expo-clipboard'
 
-import { colors, colorsToEmoji } from '../../constants'
-import AsyncStorage from '@react-native-async-storage/async-storage'
+import { Number } from './Number'
+import { GuessDistribution } from './GuessDistribution'
+
 import { PersistentDataProps } from '../Game/Game'
-import Animated, { SlideInLeft } from 'react-native-reanimated'
+import { colorsToEmoji, NUMBER_OF_TRIES } from '../../constants'
+import { digitalClockReverse } from '../../utils'
 
-interface NumberProps {
-  number: number
-  label: string
-}
-
-const Number = ({ number, label }: NumberProps) => {
-  return (
-    <View style={{ alignItems: 'center', margin: 10 }}>
-      <Text style={{ color: colors.lightgrey, fontSize: 30, fontWeight: 'bold' }}>
-        {number}
-      </Text>
-      <Text style={{ color: colors.lightgrey, fontSize: 16 }}>
-        {label}
-      </Text>
-    </View>
-  )
-}
-
-interface GuessDistributionProps {
-  distribution: number[]
-}
-
-const GuessDistribution = ({ distribution }: GuessDistributionProps) => {
-  if (!distribution) {
-    return null
-  }
-  const sum = distribution.reduce((total, dist) => dist + total, 0)
-
-  return (
-    <>
-      <Text style={styles.subTitle}>Guess distribution</Text>
-      <View style={{ width: '100%', padding: 20 }}>
-        {
-          distribution.map((dist: number, index: number) => (
-            <GuessDistributionLine 
-              key={index + 'dist'} 
-              position={index + 1} 
-              amount={dist} 
-              percentage={(100 * dist) / sum}/>
-          ))
-        }
-      </View>
-    </>
-  )
-}
-
-interface GuessDistributionLineProps {
-  position: number
-  amount: number
-  percentage: number
-}
-
-const GuessDistributionLine = ({ position, amount, percentage }: GuessDistributionLineProps) => {
-  return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%' }}>
-      <Text style={{ color: colors.lightgrey }}>{position}</Text>
-      <View 
-        style={{ 
-          width: `${percentage}%`,
-          minWidth: 20,
-          alignSelf: 'stretch',
-          backgroundColor: colors.grey, 
-          margin: 5, 
-          padding: 5,
-        }}
-      >
-        <Text style={{ color: colors.lightgrey }}>{amount}</Text>
-      </View>
-    </View>
-  )
-}
-
-interface EndScreenProps {
+import styles from './EndScreen.styles'
+interface Props {
   won: boolean
   rows: string[][]
   getCellBGColor:  (row: number, col: number) => "#538D4E" | "#B59F3B" | "#3A3A3D" | "#121214"
@@ -90,7 +23,7 @@ interface DataProps {
   [dayYearKey: string]: PersistentDataProps
 }
 
-export default function EndScreen({ won = false, rows, getCellBGColor }: EndScreenProps) {
+export default function EndScreen({ won = false, rows, getCellBGColor }: Props) {
   const [secondsTillTomorrow, setSecondsTillTomorrow] = useState(0)
   const [played, setPlayed] = useState(0)
   const [winRate, setWinRate] = useState(0)
@@ -143,7 +76,7 @@ export default function EndScreen({ won = false, rows, getCellBGColor }: EndScre
 
     // guess distribution
 
-    const dist = [0, 0, 0, 0, 0, 0]
+    const dist = Array(NUMBER_OF_TRIES).fill(0) //[0, 0, 0, 0, 0, 0]
 
     values.map((game) => {
       if (game.gameState === 'won') {
@@ -194,14 +127,6 @@ export default function EndScreen({ won = false, rows, getCellBGColor }: EndScre
     return () => clearInterval(interval)
   }, [])
 
-  const formatSeconds = () => {
-    const hours =  Math.floor(secondsTillTomorrow / (60 * 60))
-    const minutes = Math.floor((secondsTillTomorrow % (60 * 60)) / 60)
-    const seconds = Math.floor(secondsTillTomorrow % 60)
-    
-    return `${hours}:${minutes}:${seconds}`
-  }
-
   useEffect(() => {
     readState()
   }, [distribution])
@@ -214,85 +139,54 @@ export default function EndScreen({ won = false, rows, getCellBGColor }: EndScre
           autoPlay
           resizeMode='cover'
           loop
-          style={{
-            height: height + 50,
-            position: 'absolute',
-            left: 0,
-            top: 0
-          }}
+          style={[styles.confetti, { height: height + 50 }]}
           source={require('../../assets/confetti.json')}
         />
       }
-      <View style={{ width: '100%', alignItems: 'center' }}>
-        <Animated.Text entering={SlideInLeft.springify().mass(0.5)} style={styles.title}>
-          {won ? 'Congratulations!' : 'Meh, try again tomorrow'}
-        </Animated.Text>
+      <ScrollView showsVerticalScrollIndicator={false} >
+        <View style={styles.container}>
+          <Animated.Text entering={SlideInLeft.springify().mass(0.5)} style={styles.title}>
+            {won ? 'Congratulations!' : 'Meh, try again tomorrow'}
+          </Animated.Text>
 
-        <Animated.View entering={SlideInLeft.delay(100).springify().mass(0.5)}>
-          <Text style={styles.subTitle}>Statistics</Text>
-          <View style={{ flexDirection: 'row', margin: 20 }}>
-            <Number number={played} label={"Played"} />
-            <Number number={winRate} label={"Win %"} />
-            <Number number={curStreak} label={"Cur streak"} />
-            <Number number={maxStreak} label={"Max streak"} />
-          </View>    
-        </Animated.View>
+          <Animated.View entering={SlideInLeft.delay(100).springify().mass(0.5)}>
+            <Text style={styles.subTitle}>Statistics</Text>
+            <View style={styles.distributionScore}>
+              <Number number={played} label={"Played"} />
+              <Number number={winRate} label={"Win %"} />
+              <Number number={curStreak} label={"Cur streak"} />
+              <Number number={maxStreak} label={"Max streak"} />
+            </View>    
+          </Animated.View>
 
-        <Animated.View 
-          entering={SlideInLeft.delay(200).springify().mass(0.5)} 
-          style={{ width: '100%'}}
-        >
-          <GuessDistribution distribution={distribution} />
-
-        </Animated.View>
-
-        <Animated.View 
-          entering={SlideInLeft.delay(200).springify().mass(0.5)} 
-          style={{ flexDirection: 'row', padding: 10 }}
-        >
-          <View style={{ flex: 1, alignItems: 'center' }}>
-            <Text style={{ color: colors.lightgrey }}>Next Wordle</Text>
-            <Text
-              style={{ color: colors.lightgrey, fontSize: 24, fontWeight: 'bold' }}
-            >
-              {formatSeconds()}
-            </Text>
-          </View>
-
-          <Pressable 
-            onPress={share}
-            style={{ 
-              flex: 1, 
-              backgroundColor: colors.primary, 
-              borderRadius: 25, 
-              alignItems: 'center', 
-              justifyContent: 'center' 
-            }}
+          <Animated.View 
+            entering={SlideInLeft.delay(200).springify().mass(0.5)} 
+            style={styles.graphicalDistributionWrapper}
           >
-            <Text
-              style={{ color: colors.lightgrey, fontWeight: 'bold' }}
-            >
-              Share
-            </Text>
-          </Pressable>
-        </Animated.View>
-      </View>
+            <GuessDistribution distribution={distribution} />
+
+          </Animated.View>
+
+          <Animated.View 
+            entering={SlideInLeft.delay(200).springify().mass(0.5)} 
+            style={styles.clockAndButtonWrapper}
+          >
+            <View style={styles.digitalClockContainer}>
+              <Text style={styles.text}>Next Wordle</Text>
+              <Text style={styles.digitalClockText} >
+                {digitalClockReverse(secondsTillTomorrow)}
+              </Text>
+            </View>
+
+            <Pressable onPress={share} style={styles.shareButton} >
+              <Text style={styles.shareButtonText} >
+                Share
+              </Text>
+            </Pressable>
+          </Animated.View>
+        </View>
+      </ScrollView>
+
     </>
   )
 }
-
-const styles = StyleSheet.create({
-  title: {
-    fontSize: 30, 
-    color: 'white',
-    textAlign: 'center',
-    marginVertical: 20
-  },
-  subTitle: {
-    fontSize: 20, 
-    color: colors.lightgrey,
-    textAlign: 'center',
-    marginVertical: 15,
-    textTransform: 'uppercase'
-  }
-})

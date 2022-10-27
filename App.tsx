@@ -18,10 +18,10 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.black,
-    alignItems: 'center',
+    backgroundColor: colors.black
   },
   title: {
+    alignSelf: 'center',
     color: colors.lightgrey,
     fontSize: 32,
     fontWeight: 'bold',
