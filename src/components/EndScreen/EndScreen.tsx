@@ -7,10 +7,10 @@ import * as Clipboard from 'expo-clipboard'
 
 import { Number } from './Number'
 import { GuessDistribution } from './GuessDistribution'
+import { DigitalClock } from './DigitalClock'
 
 import { PersistentDataProps } from '../Game/Game'
 import { colorsToEmoji, NUMBER_OF_TRIES } from '../../constants'
-import { digitalClockReverse } from '../../utils'
 
 import styles from './EndScreen.styles'
 interface Props {
@@ -24,7 +24,6 @@ interface DataProps {
 }
 
 export default function EndScreen({ won = false, rows, getCellBGColor }: Props) {
-  const [secondsTillTomorrow, setSecondsTillTomorrow] = useState(0)
   const [played, setPlayed] = useState(0)
   const [winRate, setWinRate] = useState(0)
   const [curStreak, setCurStreak] = useState(0)
@@ -87,7 +86,6 @@ export default function EndScreen({ won = false, rows, getCellBGColor }: Props) 
     })
     
     setDistribution(dist)
-    
   }
 
   const share = async () => {
@@ -112,24 +110,11 @@ export default function EndScreen({ won = false, rows, getCellBGColor }: Props) 
   }
 
   useEffect(() => {
-    const updateTime = () => {
-      const now = new Date()
-      const tomorrow = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate() + 1
-      )
-
-      setSecondsTillTomorrow((+tomorrow - +now) / 1000)
-    }
-  
-    const interval = setInterval(updateTime, 1000)
-    return () => clearInterval(interval)
+    /* prevent rendering too soon */
+    setTimeout(() => {
+      readState()
+    }, 1);
   }, [])
-
-  useEffect(() => {
-    readState()
-  }, [distribution])
   
   return (
     <>
@@ -171,12 +156,7 @@ export default function EndScreen({ won = false, rows, getCellBGColor }: Props) 
             entering={SlideInLeft.delay(200).springify().mass(0.5)} 
             style={styles.clockAndButtonWrapper}
           >
-            <View style={styles.digitalClockContainer}>
-              <Text style={styles.text}>Next Wordle</Text>
-              <Text style={styles.digitalClockText} >
-                {digitalClockReverse(secondsTillTomorrow)}
-              </Text>
-            </View>
+            <DigitalClock />
 
             <Pressable onPress={share} style={styles.shareButton} >
               <Text style={styles.shareButtonText} >
