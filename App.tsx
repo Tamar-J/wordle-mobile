@@ -1,7 +1,7 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Game from './src/components/Game/Game';
+import { StatusBar } from 'expo-status-bar'
+import { StyleSheet, Text } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import Game from './src/components/Game/Game'
 import { colors } from './src/constants'
 
 export default function App() {

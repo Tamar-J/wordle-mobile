@@ -11,10 +11,10 @@ export function Number({ number, label }: Props) {
 
   return (
     <View style={{ alignItems: 'center', margin: 8 }}>
-      <Text adjustsFontSizeToFit style={[styles.distributionScoreNumber, {fontSize: fontScale > 1.2 ? 24 : 30 }]}>
+      <Text adjustsFontSizeToFit style={[styles.distributionScoreNumber, {fontSize: fontScale > 1 ? 26 : 30 }]}>
         {number}
       </Text>
-      <Text adjustsFontSizeToFit style={[styles.distributionScoreLabel, {fontSize: fontScale > 1.2 ? 12 : 18 }]}>
+      <Text adjustsFontSizeToFit style={[styles.distributionScoreLabel, {fontSize: fontScale > 1 ? 14 : 18 }]}>
         {label}
       </Text>
     </View>

@@ -3,8 +3,9 @@ import { colors } from '../../constants'
 
 export default StyleSheet.create({
   container: {
-    width: '100%', 
-    alignItems: 'center'
+    flex: 1,
+    alignItems: 'center',
+    paddingBottom: 16,
   },
   title: {
     fontSize: 28, 
@@ -20,8 +21,9 @@ export default StyleSheet.create({
     textTransform: 'uppercase'
   },
   distributionScore: {
+    alignItems: 'center',
+    alignContent: 'center',
     flexDirection: 'row', 
-    marginHorizontal: 16,
     marginVertical: 18
   },
   distributionScoreNumber: {
@@ -66,7 +68,8 @@ export default StyleSheet.create({
     fontWeight: 'bold'
   },
   shareButton: {
-    flex: 1, 
+    flex: 1,
+    paddingVertical: 12,
     backgroundColor: colors.primary, 
     borderRadius: 24, 
     alignItems: 'center', 
@@ -77,8 +80,11 @@ export default StyleSheet.create({
     fontWeight: 'bold'
   },
   clockAndButtonWrapper: {
-    flexDirection: 'row', 
-    padding: 8
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignContent: 'center',
+    marginRight: 16
   },
   confetti: {
     position: 'absolute',
