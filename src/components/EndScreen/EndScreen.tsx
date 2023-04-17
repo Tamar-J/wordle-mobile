@@ -99,7 +99,7 @@ export default function EndScreen({ won = false, rows, getCellBGColor }: Props) 
       .filter((row: string) => row)
       .join('\n')
 
-    const textToShare =  `WORDLE \n${textMap}`;
+    const textToShare =  `WORDLE \n${textMap}`
 
     /* prevent crash by multiple requests */
     if (await Clipboard.getStringAsync() !== textToShare) {
@@ -111,9 +111,9 @@ export default function EndScreen({ won = false, rows, getCellBGColor }: Props) 
 
   useEffect(() => {
     /* prevent rendering too soon */
-    setTimeout(() => {
-      readState()
-    }, 1);
+    setTimeout(async() => {
+      await readState()
+    }, 10)
   }, [])
   
   return (

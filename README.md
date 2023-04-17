@@ -1,6 +1,14 @@
 # **Wordle React Native**
-
-<img src=".github/wordle.gif" alt="wordle demo" width="46%"/>
+<div style="display: flex; flex-direction: row;">
+  <div>
+    <p>versão 1</p>
+    <img src=".github/wordle.gif" alt="wordle demo" width="40%"/>
+  </div>
+  <div>
+    <p>versão 1.1 (tela menor)</p>
+    <img src=".github/wordle1.1.gif" alt="wordle version 1.1 demo" width="40%"/>
+  </div>
+</div>
 
 *[![Rode em seu smartphone com Expo Go](https://img.shields.io/badge/Rode%20em%20seu%20smartphone%20com%20Expo%20Go-000.svg?style=flat-square&logo=EXPO&labelColor=f3f3f3&logoColor=000)](https://expo.dev/@tamar-j/Wordle)*
 
